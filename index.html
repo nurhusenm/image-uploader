@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Uploader</title>
+    <style>
+      /* Add some basic styling */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #result {
+        margin-top: 20px;
+      }
+      #image-url {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      .copy-button {
+        margin-top: 10px;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .copy-button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Image Uploader</h1>
+    <form id="upload-form">
+      <input type="file" name="image" accept="image/*" required />
+      <button type="submit">Upload Image</button>
+    </form>
+    <div id="result">
+      <!-- Image and URL will be displayed here -->
+    </div>
+
+    <script>
+      document
+        .getElementById("upload-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          const fileInput = e.target.elements.image;
+          formData.append("image", fileInput.files[0]);
+
+          try {
+            const response = await fetch("http://localhost:3000/upload-image", {
+              method: "POST",
+              body: formData,
+            });
+
+            // Loging the response status and text
+            console.log("Response Status:", response.status);
+            const responseText = await response.text(); // Get the response as text
+            console.log("Response Text:", responseText);
+
+            if (!response.ok) {
+              throw new Error(`Error: ${responseText}`);
+            }
+
+            const data = JSON.parse(responseText); // Parse the response text as JSON
+
+            // Display the uploaded image
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `
+              <img src="${data.url}" alt="Uploaded Image" style="max-width: 300px;"/>
+              <input type="text" id="image-url" value="${data.url}" readonly />
+              <button class="copy-button" onclick="copyUrl()">Copy URL</button>
+            `;
+          } catch (error) {
+            document.getElementById(
+              "result"
+            ).innerText = `Error: ${error.message}`;
+          }
+        });
+
+      // Function to copy the URL to the clipboard
+      function copyUrl() {
+        const urlInput = document.getElementById("image-url");
+        urlInput.select();
+        document.execCommand("copy");
+        alert("URL copied to clipboard!");
+      }
+    </script>
+  </body>
+</html>
